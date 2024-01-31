@@ -50,5 +50,3 @@ class VerbConnectApp
     client_socket.close
   end
 end
-
-run VerbConnectApp.new
