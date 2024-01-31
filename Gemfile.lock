@@ -1,0 +1,16 @@
+GEM
+  remote: https://www.rubygems.org/
+  specs:
+    rack (2.2.8)
+
+PLATFORMS
+  x64-mingw-ucrt
+
+DEPENDENCIES
+  rack
+
+RUBY VERSION
+   ruby 3.1.3p185
+
+BUNDLED WITH
+   2.4.6
