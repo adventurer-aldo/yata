@@ -4,7 +4,7 @@ require 'json'
 
 # Replace these values with your server's IP and port
 HOST = 'localhost'
-PORT = 3801
+PORT = 8302
 
 server = WEBrick::HTTPProxyServer.new(:Port => PORT)
 
