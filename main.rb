@@ -1,52 +1,24 @@
-require 'rack'
+require 'webrick'
+require 'webrick/httpproxy'
+require 'json'
 
-class VerbConnectApp
-  def call(env)
-    [
-      200,
-      {
-        'rack.hijack' => (
-          if env['rack.hijack?'] && env['REQUEST_METHOD'] == 'CONNECT'
-            proc { |_h_io| tunnel(env) }
-          end
-        ),
-      }.compact,
-      [], # Ignored when the response is hijacked.
-    ]
-  end
+# Replace these values with your server's IP and port
+HOST = 'localhost'
+PORT = 3801
 
-  def tunnel(env)
-    client_socket = env['rack.hijack'].call
+server = WEBrick::HTTPProxyServer.new(:Port => PORT)
 
-    host, port = env['HTTP_HOST'].split(':')
-    dst_socket = TCPSocket.new(host, port)
+puts "Listening on #{HOST}:#{PORT}"
 
-    peers = {client_socket => dst_socket, dst_socket => client_socket}
-    readers = peers.keys
-    loop do
-      rs, _ = IO.select(readers)
-      break if :terminating == rs.each do |r_io|
-        peers[r_io].syswrite(r_io.sysread(2**15))
-      rescue EOFError => e
-        break :terminating
-      rescue Errno::ECONNRESET => e
-        # Tried to read from an abortively closed TCPSocket.
-        break :terminating
-      rescue Errno::EPIPE => e
-        # Tried to write on a closed socket.
-        break :terminating
-      rescue => e
-        # Abort on errors.
-        break :terminating
-      end
-    end
-
-    begin
-      dst_socket.close
-    rescue
-      nil
-    end
-  ensure
-    client_socket.close
-  end
+server.mount_proc '/' do |req, res|
+  puts '==========REQUEST================='
+  puts req.to_s
+  puts '=========RESPONSE================='
+  puts res.to_s
+  puts '=========================='
 end
+
+trap('INT') { server.shutdown }
+trap('TERM') { server.shutdown }
+
+server.start
